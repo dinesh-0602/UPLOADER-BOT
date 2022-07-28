@@ -74,10 +74,13 @@ async def ddl_call_back(bot, update):
         chat_id=update.message.chat.id,
         message_id=update.message.message_id
     )
-    tmp_directory_for_each_user = Config.DOWNLOAD_LOCATION + "/" + str(update.from_user.id)
+    tmp_directory_for_each_user = (
+        f"{Config.DOWNLOAD_LOCATION}/{str(update.from_user.id)}"
+    )
+
     if not os.path.isdir(tmp_directory_for_each_user):
         os.makedirs(tmp_directory_for_each_user)
-    download_directory = tmp_directory_for_each_user + "/" + custom_file_name
+    download_directory = f"{tmp_directory_for_each_user}/{custom_file_name}"
     command_to_exec = []
     async with aiohttp.ClientSession() as session:
         c_time = time.time()
@@ -109,7 +112,7 @@ async def ddl_call_back(bot, update):
         try:
             file_size = os.stat(download_directory).st_size
         except FileNotFoundError as exc:
-            download_directory = os.path.splitext(download_directory)[0] + "." + "mkv"
+            download_directory = f"{os.path.splitext(download_directory)[0]}.mkv"
             # https://stackoverflow.com/a/678242/4723940
             file_size = os.stat(download_directory).st_size
         if file_size > Config.TG_MAX_FILE_SIZE:
@@ -248,24 +251,23 @@ File Size: {}""".format(url, humanbytes(total_length))
                         (total_length - downloaded) / speed) * 1000
                     estimated_total_time = elapsed_time + time_to_completion
                     try:
-                        current_message = """**Download Status**
+                                                current_message = """**Download Status**
 URL: {}
 File Size: {}
 Downloaded: {}
 ETA: {}""".format(
-    url,
-    humanbytes(total_length),
-    humanbytes(downloaded),
-    TimeFormatter(estimated_total_time)
-)
-                        if current_message != display_message:
-                            await bot.edit_message_text(
-                                chat_id,
-                                message_id,
-                                text=current_message
-                            )
-                            display_message = current_message
+                            url,
+                            humanbytes(total_length),
+                            humanbytes(downloaded),
+                            TimeFormatter(estimated_total_time)
+                        )
+                                                if current_message != display_message:
+                                                    await bot.edit_message_text(
+                                                        chat_id,
+                                                        message_id,
+                                                        text=current_message
+                                                    )
+                                                    display_message = current_message
                     except Exception as e:
                         logger.info(str(e))
-                        pass
         return await response.release()
